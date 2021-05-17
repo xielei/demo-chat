@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwooleWorker 聊天demo</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/3.0.11/vue.global.js"></script>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+    <div class="container-fluid" id="app">
+        <div class="row">
+            <div class="col-md-3">
+                <h1 class="mt-2">群列表</h1>
+                <hr>
+                <div style="max-height:500px; overflow:auto;">
+                    <ul class="nav nav-pills flex-column mb-auto">
+                        <template v-for="(num, key) in group_list">
+                            <li v-if="this.in_array(key, this.my_group_list)">
+                                <a @click="this.setGroup(key)" class="nav-link link-dark"
+                                    :class="{active:key==chat_obj}">
+                                    <svg v-if="key==chat_obj" t="1621244538285" class="icon" viewBox="0 0 1024 1024"
+                                        version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5799" width="16"
+                                        height="16">
+                                        <path
+                                            d="M388.9 597.4c-135.2 0-245.3-110-245.3-245.3s110-245.3 245.3-245.3 245.3 110 245.3 245.3-110.1 245.3-245.3 245.3z m0-405.3c-88.2 0-160 71.8-160 160s71.8 160 160 160 160-71.8 160-160-71.8-160-160-160z"
+                                            fill="#ffffff" p-id="5800"></path>
+                                        <path
+                                            d="M591.3 981.3H186.5c-76.6 0-138.8-62.3-138.8-138.8V749c0-130.6 106.2-236.9 236.9-236.9h208.8c130.6 0 236.9 106.3 236.9 236.9v93.5c-0.2 76.5-62.4 138.8-139 138.8zM284.5 597.4c-83.6 0-151.5 68-151.5 151.5v93.5c0 29.5 24 53.5 53.5 53.5h404.8c29.5 0 53.5-24 53.5-53.5v-93.5c0-83.6-68-151.5-151.6-151.5H284.5z"
+                                            fill="#ffffff" p-id="5801"></path>
+                                        <path
+                                            d="M847.2 938.6c-23.6 0-42.7-19.1-42.7-42.7s19.1-42.7 42.7-42.7c29.5 0 53.5-24 53.5-53.5v-93.5c0-83.6-68-151.5-151.6-151.5h-14.3c-19.8 0-37-13.6-41.5-32.9-4.5-19.3 4.8-39.1 22.5-48 54.8-27.3 88.9-82.1 88.9-143.1 0-88.2-71.8-160-160-160-23.6 0-42.7-19.1-42.7-42.7s19.1-42.7 42.7-42.7c135.2 0 245.3 110 245.3 245.3 0 57.8-19.9 111.9-54.9 154.8 88.3 34.6 151 120.6 151 220.9v93.5c0 76.6-62.3 138.8-138.9 138.8z"
+                                            fill="#ffffff" p-id="5802"></path>
+                                    </svg>
+                                    <svg v-else t="1621244476649" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                                        xmlns="http://www.w3.org/2000/svg" p-id="5529" width="16" height="16">
+                                        <path
+                                            d="M388.9 597.4c-135.2 0-245.3-110-245.3-245.3s110-245.3 245.3-245.3 245.3 110 245.3 245.3-110.1 245.3-245.3 245.3z m0-405.3c-88.2 0-160 71.8-160 160s71.8 160 160 160 160-71.8 160-160-71.8-160-160-160z"
+                                            fill="#3688FF" p-id="5530"></path>
+                                        <path
+                                            d="M591.3 981.3H186.5c-76.6 0-138.8-62.3-138.8-138.8V749c0-130.6 106.2-236.9 236.9-236.9h208.8c130.6 0 236.9 106.3 236.9 236.9v93.5c-0.2 76.5-62.4 138.8-139 138.8zM284.5 597.4c-83.6 0-151.5 68-151.5 151.5v93.5c0 29.5 24 53.5 53.5 53.5h404.8c29.5 0 53.5-24 53.5-53.5v-93.5c0-83.6-68-151.5-151.6-151.5H284.5z"
+                                            fill="#3688FF" p-id="5531"></path>
+                                        <path
+                                            d="M847.2 938.6c-23.6 0-42.7-19.1-42.7-42.7s19.1-42.7 42.7-42.7c29.5 0 53.5-24 53.5-53.5v-93.5c0-83.6-68-151.5-151.6-151.5h-14.3c-19.8 0-37-13.6-41.5-32.9-4.5-19.3 4.8-39.1 22.5-48 54.8-27.3 88.9-82.1 88.9-143.1 0-88.2-71.8-160-160-160-23.6 0-42.7-19.1-42.7-42.7s19.1-42.7 42.7-42.7c135.2 0 245.3 110 245.3 245.3 0 57.8-19.9 111.9-54.9 154.8 88.3 34.6 151 120.6 151 220.9v93.5c0 76.6-62.3 138.8-138.9 138.8z"
+                                            fill="#5F6379" p-id="5532"></path>
+                                    </svg>
+                                    {{ key }}(在线:{{num}},已加入)
+                                </a>
+                            </li>
+                            <li v-else>
+                                <a @click="this.joinGroup(key)" class="nav-link text-muted">
+                                    <svg t="1621244476649" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                                        xmlns="http://www.w3.org/2000/svg" p-id="5529" width="16" height="16">
+                                        <path
+                                            d="M388.9 597.4c-135.2 0-245.3-110-245.3-245.3s110-245.3 245.3-245.3 245.3 110 245.3 245.3-110.1 245.3-245.3 245.3z m0-405.3c-88.2 0-160 71.8-160 160s71.8 160 160 160 160-71.8 160-160-71.8-160-160-160z"
+                                            fill="#3688FF" p-id="5530"></path>
+                                        <path
+                                            d="M591.3 981.3H186.5c-76.6 0-138.8-62.3-138.8-138.8V749c0-130.6 106.2-236.9 236.9-236.9h208.8c130.6 0 236.9 106.3 236.9 236.9v93.5c-0.2 76.5-62.4 138.8-139 138.8zM284.5 597.4c-83.6 0-151.5 68-151.5 151.5v93.5c0 29.5 24 53.5 53.5 53.5h404.8c29.5 0 53.5-24 53.5-53.5v-93.5c0-83.6-68-151.5-151.6-151.5H284.5z"
+                                            fill="#3688FF" p-id="5531"></path>
+                                        <path
+                                            d="M847.2 938.6c-23.6 0-42.7-19.1-42.7-42.7s19.1-42.7 42.7-42.7c29.5 0 53.5-24 53.5-53.5v-93.5c0-83.6-68-151.5-151.6-151.5h-14.3c-19.8 0-37-13.6-41.5-32.9-4.5-19.3 4.8-39.1 22.5-48 54.8-27.3 88.9-82.1 88.9-143.1 0-88.2-71.8-160-160-160-23.6 0-42.7-19.1-42.7-42.7s19.1-42.7 42.7-42.7c135.2 0 245.3 110 245.3 245.3 0 57.8-19.9 111.9-54.9 154.8 88.3 34.6 151 120.6 151 220.9v93.5c0 76.6-62.3 138.8-138.9 138.8z"
+                                            fill="#5F6379" p-id="5532"></path>
+                                    </svg>
+                                    {{ key }}(在线:{{num}},未加入)
+                                </a>
+                            </li>
+                        </template>
+                    </ul>
+                </div>
+                <div>
+                    <button @click="this.createGroup" class="btn btn-primary my-3">创建群</button>
+                    <hr>
+                    <p>这是一个测试的聊天系统，基于SwooleWorker开发，源码托管在<a href="https://github.com/xielei/swoole-worker"
+                            target="_blank">【Github】</a>
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div v-if="this.chat_type=='group'">
+                    <h1 class="mt-2">{{ chat_obj }}</h1>
+                    <hr>
+                    <div style="height:400px; overflow:auto;" id="chat_main">
+                        <template v-for="(item, k) in group_msg_list" :key="k">
+                            <div v-if="item.group == chat_obj" class="media my-3">
+                                <template v-if="item.msgType=='system'">
+                                    <svg t="1621242371590" class="icon align-self-start mr-3" viewBox="0 0 1151 1024"
+                                        version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1764" width="40"
+                                        height="40">
+                                        <path
+                                            d="M749.937939 299.661581a235.814245 235.814245 0 1 0 0 405.027073V299.661581z"
+                                            fill="#ED5D04" fill-opacity=".3" p-id="1765"></path>
+                                        <path
+                                            d="M764.99899 14.226933a91.688947 91.688947 0 0 0-88.915667-5.077238L288.549256 195.00221a5.759892 5.759892 0 0 1-2.517286 0.597323H92.158272A92.158272 92.158272 0 0 0 0 287.587141v437.026472a92.158272 92.158272 0 0 0 92.158272 92.072941h195.708331c0.853317 0 1.663969 0.170663 2.389288 0.51199l386.979411 178.983311a92.158272 92.158272 0 0 0 130.856213-83.497101V92.134806A91.518284 91.518284 0 0 0 764.99899 14.226933zM86.355714 724.656279V287.629807a5.759892 5.759892 0 0 1 5.759892-5.759892h152.530474V730.458837H92.158272a5.759892 5.759892 0 0 1-5.802558-5.802558z m635.380087 188.071141a5.759892 5.759892 0 0 1-8.191847 5.247901l-382.54216-176.935349V270.350131l382.456829-183.420561a5.759892 5.759892 0 0 1 8.277178 5.205236v820.592614z m380.664862-448.71692h-187.815145a43.135191 43.135191 0 0 0 0 86.270382h187.815145a43.135191 43.135191 0 0 0 0-86.270382z m-160.295661-147.19724a43.049859 43.049859 0 0 0 30.506095-12.629097L1105.472606 171.535984a43.177857 43.177857 0 0 0-61.054855-61.01219L911.556242 243.21464a43.092525 43.092525 0 0 0 30.54876 73.59862z m30.506095 393.251293a43.135191 43.135191 0 1 0-61.012189 61.012189l132.776177 132.690846a43.177857 43.177857 0 0 0 61.012189-61.01219l-132.776177-132.690845z"
+                                            fill="#ED5D04" p-id="1766"></path>
+                                    </svg>
+                                    <div class="media-body">
+                                        <div class="mt-0 text-muted">系统消息</div>
+                                        <div class="my-1">{{item.message}}</div>
+                                        <div class="text-muted">{{toDate(item.time)}}</div>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    <svg t="1621240926238" class="icon align-self-start mr-3" viewBox="0 0 1024 1024"
+                                        version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4935" width="40"
+                                        height="40">
+                                        <path
+                                            d="M794.08 312.64A279.616 279.616 0 1 1 514.432 32a280.128 280.128 0 0 1 279.616 280.64z m0 0l-48.832 293.856A371.776 371.776 0 0 1 281.6 604.8C109.056 668.416 32 890.56 32 992h960c0-100.544-77.664-321.152-246.784-385.504z m0 0"
+                                            fill="#5866D0" p-id="4936"></path>
+                                        <path
+                                            d="M794.08 312.64A279.616 279.616 0 1 1 514.432 32a280.128 280.128 0 0 1 279.616 280.64z m0 0"
+                                            fill="#F17254" p-id="4937"></path>
+                                    </svg>
+                                    <div class="media-body">
+                                        <div class="mt-0 text-muted">{{item.client}}</div>
+                                        <div class="my-1">{{item.message}}</div>
+                                        <div class="text-muted">{{toDate(item.time)}}</div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                <div class="bg-light p-3 mt-3">
+                    <div>
+                        <label>请输入聊天内容</label>
+                        <textarea class="form-control" v-model="message" rows="3"></textarea>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-primary" @click="this.sendMsg">发送</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <h1 class="mt-2">成员</h1>
+                <hr>
+                <div style="max-height:500px; overflow:auto;">
+                    <ul>
+                        <li v-for="item in group_client_list[chat_obj]">{{item}}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const ws = new ReconnectingWebSocket('ws://demo_chat.ebcms.com/server/', null, {
+            debug: true,
+            reconnectInterval: 3000
+        });
+        ws.onopen = function () {
+            app.wstid = setInterval(function () {
+                ws.send(1);
+            }, 10000);
+        };
+        ws.onclose = function () {
+            clearInterval(app.wstid);
+        };
+        ws.onmessage = function (message) {
+            var data = JSON.parse(message.data);
+            if (data.event != undefined) {
+                if (app.event_list[data.event]) {
+                    app.event_list[data.event](data.data);
+                    delete (app.event_list[data.event]);
+                } else {
+                    switch (data.event) {
+                        case 'groupList':
+                            app.group_list = data.data;
+                            break;
+
+                        case 'connect':
+                            app.client = data.data;
+                            app.joinGroup('大厅');
+                            app.send('getClientInfo', [data.data], function (data) {
+                                app.my_group_list = data.group_list;
+                            });
+                            break;
+
+                        case 'close':
+                            data.data.group_list.forEach(group => {
+                                app.group_list[group] -= 1;
+                                app.delete_in_array(data.data.client, app.group_client_list[group]);
+                                app.group_msg_list.push({
+                                    group: group,
+                                    msgType: 'system',
+                                    time: new Date().getTime(),
+                                    message: "[" + data.data.client + "] 退出！"
+                                });
+                                app.toBottom(group);
+                            });
+                            break;
+
+                        case 'groupMsg':
+                            app.group_msg_list.push(data.data);
+                            app.toBottom(data.data.group);
+                            break;
+
+                        case 'joinGroup':
+                            app.group_msg_list.push({
+                                group: data.data.group,
+                                msgType: 'system',
+                                time: new Date().getTime(),
+                                message: "[" + data.data.client + "] 进入房间！"
+                            });
+                            app.toBottom(data.data.group);
+
+                            if (!app.in_array(data.data.client, app.group_client_list[data.data.group])) {
+                                app.group_client_list[data.data.group].unshift(data.data.client);
+                            }
+                            break;
+
+                        case 'sendToGroup':
+                            console.info(data);
+                            break;
+
+                        case 'error':
+                            console.error(data.data);
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+            } else {
+                console.error(data);
+            }
+        };
+        const app = Vue.createApp({
+            data() {
+                return {
+                    ws: ws,
+                    wstid: null,
+                    window: window,
+                    event_id: 0,
+                    client: null,
+                    event_list: [],
+                    client_count: 0,
+                    chat_type: null,
+                    chat_obj: null,
+                    my_group_list: [],
+                    group_list: {},
+                    group_client_list: {},
+                    group_msg_list: [],
+                    message: '',
+                }
+            },
+            watch: {
+                chat_obj(newValue, oldValue) {
+                    var self = this;
+                    this.send('getClientListByGroup', [newValue], function (data) {
+                        self.group_client_list[newValue] = data;
+                    });
+                }
+            },
+            methods: {
+                toDate: function (timestrmp) {
+                    var date = new Date(timestrmp);
+                    var year = date.getFullYear(),
+                        month = ("0" + (date.getMonth() + 1)).slice(-2),
+                        sdate = ("0" + date.getDate()).slice(-2),
+                        hour = ("0" + date.getHours()).slice(-2),
+                        minute = ("0" + date.getMinutes()).slice(-2),
+                        second = ("0" + date.getSeconds()).slice(-2);
+                    return year + "-" + month + "-" + sdate + " " + hour + ":" + minute + ":" + second;
+                },
+                toBottom: function (group) {
+                    if (group == this.chat_obj) {
+                        setTimeout(function () {
+                            document.getElementById('chat_main').scrollTop = 10000000;
+                        }, 1);
+                    }
+                },
+                delete_in_array: function (item, arr) {
+                    for (let i = arr.length - 1; i > -1; i--) {
+                        if (arr[i] == item) {
+                            arr.splice(i, 1);
+                        }
+                    }
+                    return arr;
+                },
+                in_array: function (search, array) {
+                    for (var i in array) {
+                        if (array[i] == search) {
+                            return true;
+                        }
+                    }
+                    return false;
+                },
+                getEventId: function () {
+                    this.event_id += 1;
+                    return this.event_id;
+                },
+                send: function (cmd, param, callback = null) {
+                    if (callback) {
+                        var event_id = this.getEventId();
+                        this.event_list['event_' + event_id] = callback;
+                        this.ws.send(JSON.stringify({
+                            event: 'event_' + event_id,
+                            cmd: cmd,
+                            param: param,
+                        }));
+                    } else {
+                        this.ws.send(JSON.stringify({
+                            cmd: cmd,
+                            param: param,
+                        }));
+                    }
+                },
+                broadcast: function (data) {
+                    this.send('sendToAll', [JSON.stringify(data)]);
+                },
+                createGroup: function () {
+                    var self = this;
+                    var group = window.prompt('请输入群的名字', 'group_' + new Date().getTime());
+                    if (group) {
+                        this.joinGroup(group);
+                    }
+                },
+                joinGroup: function (group) {
+                    var self = this;
+                    this.send('joinGroup', [this.client, group], function (data) {
+                        self.send('getGroupListInfo', [], function (data) {
+                            self.broadcast({
+                                event: 'groupList',
+                                data: data
+                            });
+                            self.send('sendToGroup', [group, JSON.stringify({
+                                event: 'joinGroup',
+                                data: {
+                                    group: group,
+                                    client: self.client,
+                                }
+                            })]);
+                        });
+                        self.send('getClientInfo', [self.client], function (data) {
+                            self.my_group_list = data.group_list;
+                        });
+                        self.setGroup(group);
+                    });
+                },
+                setGroup: function (group) {
+                    this.chat_type = 'group';
+                    this.chat_obj = group;
+                    this.toBottom(group);
+                },
+                sendMsg: function () {
+                    switch (this.chat_type) {
+                        case 'group':
+                            this.send('sendToGroup', [this.chat_obj, JSON.stringify({
+                                event: 'groupMsg',
+                                data: {
+                                    group: this.chat_obj,
+                                    msgType: 'text',
+                                    time: new Date().getTime(),
+                                    message: this.message ? this.message : '各位爸爸们好~~',
+                                    client: this.client,
+                                }
+                            })]);
+                            this.message = '';
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+
+</html>

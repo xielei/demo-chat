@@ -1,0 +1,8 @@
+{
+    "name": "xielei/test",
+    "license": "Apache-2.0",
+    "type": "project",
+    "require": {
+        "xielei/swoole-worker": "dev-main"
+    }
+}
