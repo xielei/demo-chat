@@ -3,21 +3,28 @@
 declare(strict_types=1);
 
 use Swoole\Timer;
-use Xielei\Swoole\Worker;
 use Xielei\Swoole\Api;
-use Xielei\Swoole\Event as SwooleEvent;
 
-class Event extends SwooleEvent
+use Xielei\Swoole\Helper\WorkerEvent as HelperWorkerEvent;
+
+class WorkerEvent extends HelperWorkerEvent
 {
-    public function onWorkerStart(Worker $worker)
+    public function onWorkerStart()
     {
-        if ($worker->worker_id == 0) {
-            Timer::tick(5000, function () {
+        if ($this->worker->getServer()->worker_id == 0) {
+            $this->xtimer = Timer::tick(5000, function () {
                 Api::sendToAll(json_encode([
                     'event' => 'groupList',
                     'data' => $this->getGroupList(),
                 ]));
             });
+        }
+    }
+
+    public function onWorkerExit()
+    {
+        if (isset($this->xtimer)) {
+            Timer::clear($this->xtimer);
         }
     }
 
@@ -29,7 +36,7 @@ class Event extends SwooleEvent
         ]));
     }
 
-    public function onMessage(string $client, string $data)
+    public function onReceive(string $client, string $data)
     {
         try {
             if (substr($data, 0, 1) !== '{') {

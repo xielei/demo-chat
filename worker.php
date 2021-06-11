@@ -6,13 +6,8 @@ use Xielei\Swoole\Worker;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-include __DIR__ . '/Event.php';
-$worker = new Worker(new Event);
+$worker = new Worker();
 
-$worker->set([
-    // 'daemonize' => true,
-]);
-
-$worker->register_secret_key = 'this is secret_key..';
+$worker->worker_file = __DIR__ . '/event_worker.php';
 
 $worker->start();
