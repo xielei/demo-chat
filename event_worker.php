@@ -28,7 +28,7 @@ class WorkerEvent extends HelperWorkerEvent
         }
     }
 
-    public function onConnect(string $client)
+    public function onConnect(string $client, array $session)
     {
         Api::sendToClient($client, json_encode([
             'event' => 'connect',
@@ -36,7 +36,7 @@ class WorkerEvent extends HelperWorkerEvent
         ]));
     }
 
-    public function onReceive(string $client, string $data)
+    public function onReceive(string $client, array $session, string $data)
     {
         try {
             if (substr($data, 0, 1) !== '{') {
@@ -72,7 +72,7 @@ class WorkerEvent extends HelperWorkerEvent
         }
     }
 
-    public function onClose(string $client, array $bind)
+    public function onClose(string $client, array $session, array $bind)
     {
         Api::sendToAll(json_encode([
             'event' => 'close',
